@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pandas import DataFrame, MultiIndex
+from pandas import DataFrame, MultiIndex, Categorical
 from pandas.util import testing as tm
 
 
@@ -76,3 +76,13 @@ def three_group():
                       'D': np.random.randn(11),
                       'E': np.random.randn(11),
                       'F': np.random.randn(11)})
+
+
+@pytest.fixture
+def df_categorical():
+    return DataFrame({
+        'A': [1, 1, 1, 2, 2],
+        'B': [100, 100, 200, 100, 100],
+        'C': ['apple', 'orange', 'mango', 'mango', 'orange'],
+        'D': Categorical(['jupiter', 'mercury', 'mars', 'venus', 'venus']),
+    })

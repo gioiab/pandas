@@ -545,6 +545,20 @@ def test_groupby_multiple_columns(df, op):
     assert_series_equal(result, expected)
 
 
+# TODO: actually implement the fix
+# GH 22512
+def test_groupby_multiple_columns_with_categorical(df_categorical):
+    print(df_categorical.dtypes)
+    result = df_categorical.groupby(by=['A', 'B']).first()
+    expected = DataFrame(
+        {'C': ['apple', 'mango', 'mango'], 'D': ['jupiter', 'mars', 'venus']},
+        index=pd.MultiIndex.from_tuples(
+            [(1, 100), (1, 200), (2, 100)], names=['A', 'B']
+        )
+    )
+    assert_frame_equal(result, expected)
+    
+
 def test_groupby_as_index_agg(df):
     grouped = df.groupby('A', as_index=False)
 
