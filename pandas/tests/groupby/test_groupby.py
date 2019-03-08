@@ -548,11 +548,11 @@ def test_groupby_multiple_columns(df, op):
 # TODO: actually implement the fix
 # GH 22512
 def test_groupby_multiple_columns_with_categorical(df_categorical):
-    print(df_categorical.dtypes)
-    result = df_categorical.groupby(by=['A', 'B']).first()
+    print(df_categorical)
+    result = df_categorical.groupby(by=['A', 'B']).agg('first')
     print(result)
     expected = DataFrame(
-        {'C': ['apple', 'mango', 'mango'], 'D': Categorical(['jupiter', 'mars', 'venus'])},
+        {'C': ['apple', 'mango', 'mango'], 'D': ['jupiter', 'mars', 'venus']},
         index=pd.MultiIndex.from_tuples(
             [(1, 100), (1, 200), (2, 100)], names=['A', 'B']
         )
