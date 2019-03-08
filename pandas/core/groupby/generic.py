@@ -98,7 +98,6 @@ class NDFrameGroupBy(GroupBy):
         # here, it should happen via BlockManager.combine
 
         data, agg_axis = self._get_data_to_aggregate()
-
         if numeric_only:
             data = data.get_numeric_data(copy=False)
 
@@ -106,12 +105,15 @@ class NDFrameGroupBy(GroupBy):
         new_items = []
         deleted_items = []
         for block in data.blocks:
-
+            print('===================  THIS IS THE BLOCK AT ISSUE ===================')
+            print(block)
             locs = block.mgr_locs.as_array
             try:
                 result, _ = self.grouper.aggregate(
                     block.values, how, axis=agg_axis, min_count=min_count)
+                print(f'------> NORMAL - RESULT AFTER AGGREGATION ===> {type(result)} {result}')
             except NotImplementedError:
+                print('NON IMPLEMENTED???')
                 # generally if we have numeric_only=False
                 # and non-applicable functions
                 # try to python agg
@@ -126,11 +128,11 @@ class NDFrameGroupBy(GroupBy):
                 from pandas.core.groupby.groupby import groupby
 
                 obj = self.obj[data.items[locs]]
+                print(f"------> NOT IMPLEMENTED - LOCS {locs} OBJ {obj}{type(obj)})")
                 s = groupby(obj, self.grouper)
-                result = s.aggregate(lambda x: alt(x, axis=self.axis))
-
+                result = s.aggregate(lambda x: alt(x, axis=self.axis)) #.values.flatten()
+                print(f'------> NOT IMPLEMENTED - RESULT AFTER AGGREGATION ===> {type(result)} {result}')
             finally:
-
                 # see if we can cast the block back to the original dtype
                 result = block._try_coerce_and_cast_result(result)
                 newb = block.make_block(result)
@@ -140,6 +142,8 @@ class NDFrameGroupBy(GroupBy):
 
         if len(new_blocks) == 0:
             raise DataError('No numeric types to aggregate')
+
+        # print('====== NEW ITEMS / NEW_ BLOCKS', new_items, new_blocks)
 
         # reset the locs in the blocks to correspond to our
         # current ordering
@@ -164,6 +168,7 @@ class NDFrameGroupBy(GroupBy):
             b.mgr_locs = indexer[offset:(offset + loc)]
             offset += loc
 
+        print('====== FINAL! NEW ITEMS NEW BLOCKS', new_items, new_blocks)
         return new_items, new_blocks
 
     def _get_data_to_aggregate(self):
@@ -180,9 +185,10 @@ class NDFrameGroupBy(GroupBy):
         return obj
 
     def aggregate(self, arg, *args, **kwargs):
-
         _level = kwargs.pop('_level', None)
         result, how = self._aggregate(arg, _level=_level, *args, **kwargs)
+        print(f'--------> GROUPBY AGGREGATE {result}{how}')
+
         if how is None:
             return result
 

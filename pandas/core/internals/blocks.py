@@ -667,6 +667,9 @@ class Block(PandasObject):
         if dtype is None:
             dtype = self.dtype
 
+        # print('====== TRYING TO CAST RESULT ======')
+        # print(result, self.dtype)
+
         if self.is_integer or self.is_bool or self.is_datetime:
             pass
         elif self.is_float and result.dtype == self.dtype:
@@ -687,9 +690,9 @@ class Block(PandasObject):
                         return result
                 else:
                     return result.astype(np.object_)
-
             return result
 
+        # print('====== DOWNCAST RESULT', maybe_downcast_to_dtype(result, dtype))
         # may need to change the dtype here
         return maybe_downcast_to_dtype(result, dtype)
 
@@ -3050,6 +3053,7 @@ def get_block_type(values, dtype=None):
     return cls
 
 
+# TODO: a dataframe should not arrive here
 def make_block(values, placement, klass=None, ndim=None, dtype=None,
                fastpath=None):
     if fastpath is not None:
@@ -3057,7 +3061,10 @@ def make_block(values, placement, klass=None, ndim=None, dtype=None,
         warnings.warn("fastpath argument is deprecated, will be removed "
                       "in a future release.", DeprecationWarning)
     if klass is None:
-        dtype = dtype or values.dtype
+        try:
+            dtype = dtype or values.dtype
+        except:
+            print(f'\n ---- MAKE BLOCK --- {values} {type(values)} {values.dtype}')
         klass = get_block_type(values, dtype)
 
     elif klass is DatetimeTZBlock and not is_datetime64tz_dtype(values):

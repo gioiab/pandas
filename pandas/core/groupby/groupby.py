@@ -503,6 +503,7 @@ class _GroupBy(PandasObject, SelectionMixin):
             # GH12839 clear selected obj cache when group selection changes
             self._group_selection = ax.difference(Index(groupers),
                                                   sort=False).tolist()
+
             self._reset_cache('_selected_obj')
 
     def _set_result_index_ordered(self, result):
@@ -1246,6 +1247,7 @@ class GroupBy(_GroupBy):
             @Appender(_common_see_also)
             @Appender(_local_template)
             def f(self, **kwargs):
+                print('NUMERIC ONLY', numeric_only)
                 if 'numeric_only' not in kwargs:
                     kwargs['numeric_only'] = numeric_only
                 if 'min_count' not in kwargs:
@@ -1253,15 +1255,18 @@ class GroupBy(_GroupBy):
 
                 self._set_group_selection()
                 try:
+                    print(f'ALIAS ==> {alias}')
                     return self._cython_agg_general(
                         alias, alt=npfunc, **kwargs)
                 except AssertionError as e:
                     raise SpecificationError(str(e))
-                except Exception:
+                except Exception as e:
+                    print(f'EXCEPTION: {e}')
                     result = self.aggregate(
                         lambda x: npfunc(x, axis=self.axis))
                     if _convert:
                         result = result._convert(datetime=True)
+                    print('RESULT', result)
                     return result
 
             set_function_name(f, name, cls)
@@ -1271,7 +1276,7 @@ class GroupBy(_GroupBy):
         def first_compat(x, axis=0):
 
             def first(x):
-                x = x.to_numpy()
+                x = x.to_numpy().flatten()
 
                 x = x[notna(x)]
                 if len(x) == 0:
@@ -1279,8 +1284,12 @@ class GroupBy(_GroupBy):
                 return x[0]
 
             if isinstance(x, DataFrame):
+                print(f'\n --- FIRST COMPAT - IS A DATAFRAME {type(x)}')
+                print(f'\n --- FIRST COMPAT - INPUT {x}')
+                print(f'\n --- FIRST COMPAT - RESULT {x.apply(first, axis=axis)} \n ---')
                 return x.apply(first, axis=axis)
             else:
+                print(f'\n --- FIRST COMPAT - IS NOT A DATAFRAME {type(x)}')
                 return first(x)
 
         def last_compat(x, axis=0):
