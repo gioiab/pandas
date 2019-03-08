@@ -14,7 +14,7 @@ from pandas.errors import PerformanceWarning
 import pandas as pd
 from pandas import (
     DataFrame, Index, MultiIndex, Panel, Series, Timestamp, compat, date_range,
-    read_csv)
+    read_csv, Categorical)
 import pandas.core.common as com
 import pandas.util.testing as tm
 from pandas.util.testing import (
@@ -550,14 +550,15 @@ def test_groupby_multiple_columns(df, op):
 def test_groupby_multiple_columns_with_categorical(df_categorical):
     print(df_categorical.dtypes)
     result = df_categorical.groupby(by=['A', 'B']).first()
+    print(result)
     expected = DataFrame(
-        {'C': ['apple', 'mango', 'mango'], 'D': ['jupiter', 'mars', 'venus']},
+        {'C': ['apple', 'mango', 'mango'], 'D': Categorical(['jupiter', 'mars', 'venus'])},
         index=pd.MultiIndex.from_tuples(
             [(1, 100), (1, 200), (2, 100)], names=['A', 'B']
         )
     )
     assert_frame_equal(result, expected)
-    
+
 
 def test_groupby_as_index_agg(df):
     grouped = df.groupby('A', as_index=False)
